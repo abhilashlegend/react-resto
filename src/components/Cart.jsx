@@ -19,8 +19,12 @@ export default function Cart() {
         userPrgCtx.closeCart();
     }
 
+    function handleOpenCheckout() {
+        userPrgCtx.openCheckout();
+    }
+
     return (
-        <Modal className="cart" open={userPrgCtx.userProgress === 'cart'} >
+        <Modal className="cart" open={userPrgCtx.userProgress === 'cart'} onClose={userPrgCtx.userProgress === 'cart' ? handleCloseCart : null} >
             <h2>Your Cart</h2>
 
             <ul>
@@ -35,7 +39,7 @@ export default function Cart() {
             </div>
             <div className="modal-actions">
                 <Button textOnly onClick={handleCloseCart}>Close</Button>
-                <Button onClick={handleCloseCart}>Go to Checkout</Button>
+                {cartCtx.items.length > 0 && <Button onClick={handleOpenCheckout}>Go to Checkout</Button> }
             </div>
         </Modal>
     )
