@@ -4,6 +4,14 @@ import CartContext from "../store/CartContext";
 import Input from "./UI/Input";
 import Button from "./UI/Button";
 import UserProgressContext from "../store/UserProgressContext";
+import useHttp from "../hooks/useHttp";
+
+const requestConfig = {
+    method: 'POST',
+    headers: {
+        'Content-Type' : 'application/json'
+    }
+}
 
 export default function Checkout() {
 
@@ -18,13 +26,20 @@ export default function Checkout() {
         userPrgCtx.closeCheckout();
     }
 
+    function handleFinish() {
+        userPrgCtx.closeCheckout();
+        cartCtx.clearCart();
+    }
+
+    const { data, error, isLoading: isSending, sendRequest } = useHttp('http://localhost:3000/orders', requestConfig , [])
+
     function formSubmitHandler(event) {
         event.preventDefault();
 
         const fd = new FormData(event.target);
         const customerData = Object.fromEntries(fd.entries());
 
-        fetch('http://localhost:3000/orders', {
+       /* fetch('http://localhost:3000/orders', {
             method: "POST",
             headers: {
                 'Content-Type' : 'application/json'
@@ -35,12 +50,31 @@ export default function Checkout() {
                     customer: customerData
                 }
             })
-        })
+        }) */
+
+        sendRequest({
+            order: {
+                items: cartCtx.items,
+                customer: customerData
+            }
+        })    
 
     }
-    
 
-    return (
+    if(error){
+        return <Error title="Error sending order" message={error} />
+    }
+
+    if(data.message && !error){
+        return (<Modal open={userPrgCtx.userProgress === 'checkout'} onClose={handleFinish}>
+            <h2>Thank you!</h2>
+            <p>{data.message}.</p>
+            <p className="modal-actions">
+                <Button onClick={handleFinish}>Okay</Button>
+            </p>
+        </Modal>)
+    } else {
+         return (
         <Modal open={userPrgCtx.userProgress === 'checkout'}>
             <h2>Checkout</h2>
             <p>Total Amount: {totalPrice}</p>
@@ -55,10 +89,16 @@ export default function Checkout() {
                     </div>
                     <div className="modal-actions">
                         <Button textOnly onClick={closeCheckoutHandler}>Close</Button>
-                        <Button>Submit Order</Button>
+                        { isSending ? <span>Sending data please wait...</span> : <Button>Submit Order</Button>}
+                        
                     </div>
                 </form>
             </div>
         </Modal>
-    )
+        )
+    }
+    
+    
+
+   
 }
