@@ -17,6 +17,27 @@ export default function Checkout() {
     function closeCheckoutHandler() {
         userPrgCtx.closeCheckout();
     }
+
+    function formSubmitHandler(event) {
+        event.preventDefault();
+
+        const fd = new FormData(event.target);
+        const customerData = Object.fromEntries(fd.entries());
+
+        fetch('http://localhost:3000/orders', {
+            method: "POST",
+            headers: {
+                'Content-Type' : 'application/json'
+            },
+            body: JSON.stringify({
+                order: {
+                    items: cartCtx.items,
+                    customer: customerData
+                }
+            })
+        })
+
+    }
     
 
     return (
@@ -24,12 +45,12 @@ export default function Checkout() {
             <h2>Checkout</h2>
             <p>Total Amount: {totalPrice}</p>
             <div>
-                <form>
-                    <Input id="fullname" name="fullname" label="Full Name" required />
+                <form onSubmit={formSubmitHandler}>
+                    <Input id="name" name="name" label="Full Name" required />
                     <Input id="email" type="email" name="email" label="E-Mail Address" required />
                     <Input id="street" name="street" label="Street" type="text" required />
                     <div className="control-row">
-                        <Input id="postal_code" label="Postal Code" name="postal_code" id="postal_code" type="text" required />
+                        <Input id="postal-code" label="Postal Code" name="postal-code" type="text" required />
                         <Input id="city" name="city" label="City"  type="text" required />
                     </div>
                     <div className="modal-actions">
